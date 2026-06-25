@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+@theme {
+  /* Pokédex brand colors */
+  --color-pokedex-gold: #cda434;
+  --color-pokedex-border: #3b82f6;
+  --color-pokedex-card: #ffffff;
+  --color-pokedex-nav-active: #fef3c7;
+  --color-pokedex-nav-active-border: #d4a017;
+
+  /* Pokémon type colors */
+  --color-type-normal: #A8A77A;
+  --color-type-fire: #EE8130;
+  --color-type-water: #6390F0;
+  --color-type-electric: #F7D02C;
+  --color-type-grass: #7AC74C;
+  --color-type-ice: #96D9D6;
+  --color-type-fighting: #C22E28;
+  --color-type-poison: #A33EA1;
+  --color-type-ground: #E2BF65;
+  --color-type-flying: #A98FF3;
+  --color-type-psychic: #F95587;
+  --color-type-bug: #A6B91A;
+  --color-type-rock: #B6A136;
+  --color-type-ghost: #735797;
+  --color-type-dragon: #6F35FC;
+  --color-type-dark: #705746;
+  --color-type-steel: #B7B7CE;
+  --color-type-fairy: #D685AD;
+}
