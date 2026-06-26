@@ -28,30 +28,18 @@ const TYPE_COLORS = {
 };
 
 /**
- * Fetch daftar Pokémon dari backend (default 20, atau search).
- * Response: [{id, name, image, url}, ...]
+ * Fetch daftar Pokémon DENGAN types dari backend (1 call = list + types).
+ * Response: [{id, name, image, url, types[]}, ...]
  */
-async function fetchPokemonList(search = "") {
+async function fetchPokemonWithTypes(search = "") {
   const url = search
-    ? `${API_BASE}/api/pokemon?search=${encodeURIComponent(search)}`
-    : `${API_BASE}/api/pokemon`;
+    ? `${API_BASE}/api/pokemon-with-types?search=${encodeURIComponent(search)}`
+    : `${API_BASE}/api/pokemon-with-types`;
 
   const res = await fetch(url, {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
-}
-
-/**
- * Fetch detail Pokémon (untuk dapat types).
- * Response: {id, name, image, types[], height, weight, abilities[], stats[]}
- */
-async function fetchPokemonDetail(id) {
-  const res = await fetch(`${API_BASE}/api/pokemon/${id}`, {
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) return null;
   return res.json();
 }
 
@@ -244,30 +232,14 @@ export default function Home() {
       .catch(() => setKoleksiCount(0));
   }, []);
 
-  // Fetch Pokémon list + detail (untuk types)
+  // Fetch Pokémon list (termasuk types) dalam 1 call
   const loadPokemon = useCallback(async (search) => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch list
-      const list = await fetchPokemonList(search);
-
-      // 2. Fetch detail per Pokémon (paralel) untuk mendapatkan types
-      const detailedList = await Promise.all(
-        list.map(async (poke) => {
-          try {
-            const detail = await fetchPokemonDetail(poke.id);
-            return {
-              ...poke,
-              types: detail?.types || [],
-            };
-          } catch {
-            return { ...poke, types: [] };
-          }
-        })
-      );
-
-      setPokemonList(detailedList);
+      // 1 call = list + types, bukan 21 calls lagi
+      const list = await fetchPokemonWithTypes(search);
+      setPokemonList(list);
     } catch (err) {
       setError(err.message);
       setPokemonList([]);
