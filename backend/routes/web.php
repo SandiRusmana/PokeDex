@@ -10,6 +10,7 @@ Route::get('/', function () {
 });
 
 Route::get('/api/pokemon', [PokemonController::class, 'index']);
+Route::get('/api/pokemon-with-types', [PokemonController::class, 'indexWithTypes']);
 Route::get('/api/pokemon/{id}', [PokemonController::class, 'show']);
 Route::post('/api/pokemon/catch', [MyPokemonController::class, 'catch']);
 Route::get('/api/my-pokemon', [MyPokemonController::class, 'index']);
