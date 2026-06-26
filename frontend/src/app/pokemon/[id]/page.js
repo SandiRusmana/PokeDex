@@ -143,17 +143,17 @@ function StatsTab({ pokemon }) {
 // ─── Komponen: Skeleton saat loading ─────────────────────────────
 function DetailSkeleton() {
   return (
-    <div className="min-h-screen bg-[#cda434] flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8">
+    <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       <div className="w-full max-w-5xl flex flex-col gap-8 animate-pulse">
         <div className="flex justify-between">
-          <div className="h-6 w-40 bg-black/10 rounded" />
-          <div className="h-10 w-28 bg-black/10 rounded-full" />
+          <div className="h-6 w-40 bg-black/10 dark:bg-white/10 rounded" />
+          <div className="h-10 w-28 bg-black/10 dark:bg-white/10 rounded-full" />
         </div>
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
           <div className="flex flex-col items-center gap-4">
-            <div className="h-6 w-20 bg-black/10 rounded" />
-            <div className="h-6 w-32 bg-black/10 rounded" />
-            <div className="w-56 h-56 bg-black/10 rounded-xl" />
+            <div className="h-6 w-20 bg-black/10 dark:bg-white/10 rounded" />
+            <div className="h-6 w-32 bg-black/10 dark:bg-white/10 rounded" />
+            <div className="w-56 h-56 bg-black/10 dark:bg-white/10 rounded-xl" />
           </div>
           <div className="w-full max-w-md h-72 bg-white/70 rounded-2xl" />
         </div>
@@ -199,8 +199,8 @@ export default function PokemonDetailPage() {
   // ── Error state ──
   if (error || !pokemon) {
     return (
-      <div className="min-h-screen bg-[#cda434] flex flex-col items-center justify-center px-4 gap-4">
-        <p className="text-zinc-900 font-semibold text-center">
+      <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center justify-center px-4 gap-4 transition-colors duration-300">
+        <p className="text-zinc-900 dark:text-zinc-100 font-semibold text-center">
           Gagal memuat detail Pokémon{error ? `: ${error}` : ""}
         </p>
         <div className="flex gap-3">
@@ -212,7 +212,7 @@ export default function PokemonDetailPage() {
           </button>
           <button
             onClick={() => router.push("/")}
-            className="px-4 py-2 bg-white text-zinc-700 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition-colors cursor-pointer"
+            className="px-4 py-2 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 rounded-lg text-sm font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
           >
             Kembali ke Beranda
           </button>
@@ -225,18 +225,18 @@ export default function PokemonDetailPage() {
   const displayName = pokemon.name.toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#cda434] flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8">
+    <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       <div className="w-full max-w-5xl flex flex-col gap-8">
         {/* Header: tombol kembali + counter catch */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => router.push("/")}
-            className="flex items-center gap-2 font-bold text-zinc-900 hover:opacity-70 transition-opacity cursor-pointer"
+            className="flex items-center gap-2 font-bold text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity cursor-pointer"
           >
             <span aria-hidden="true">←</span> Kembali ke Beranda
           </button>
 
-          <div className="bg-white border-2 border-zinc-300 rounded-full px-5 py-2 font-bold text-zinc-800">
+          <div className="bg-white border-2 border-zinc-300 dark:border-zinc-600 rounded-full px-5 py-2 font-bold text-zinc-800 transition-colors">
             0 Catch 🔴
           </div>
         </div>
@@ -245,10 +245,10 @@ export default function PokemonDetailPage() {
         <div className="flex flex-col lg:flex-row gap-10 items-start justify-center">
           {/* Kolom kiri: nomor, nama, gambar, tombol catch */}
           <div className="flex flex-col items-center gap-3 w-full lg:w-auto">
-            <span className="text-2xl font-bold text-zinc-900">
+            <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               #{displayNumber}
             </span>
-            <h1 className="text-2xl font-extrabold text-zinc-900 flex items-center gap-2">
+            <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               🔴 {displayName}
             </h1>
 
@@ -258,15 +258,15 @@ export default function PokemonDetailPage() {
               className="w-56 h-56 object-contain"
             />
 
-            <button className="mt-2 flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-500 rounded-full font-bold text-zinc-800 hover:bg-blue-50 transition-colors cursor-pointer">
+            <button className="mt-2 flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-500 dark:border-blue-400 rounded-full font-bold text-zinc-800 hover:bg-blue-50 transition-colors cursor-pointer">
               🔴 CATCH ME!
             </button>
           </div>
 
           {/* Kolom kanan: card About/Stats */}
-          <div className="w-full max-w-md bg-white border-2 border-blue-500 rounded-2xl p-6">
+          <div className="w-full max-w-md bg-white border-2 border-blue-500 dark:border-blue-400 rounded-2xl p-6 transition-colors">
             {/* Tab switcher */}
-            <div className="flex bg-zinc-100 rounded-full p-1">
+            <div className="flex bg-zinc-100 rounded-full p-1 transition-colors">
               <button
                 onClick={() => setActiveTab("about")}
                 className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer ${
