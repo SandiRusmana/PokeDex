@@ -1,10 +1,11 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
-const fontInter = Inter ({
-  subsets : ["latin"],
-  weight : ["400", "500", "600", "700"]
-})
+const fontInter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata = {
   title: "Pokedex",
@@ -13,11 +14,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      className={`${fontInter.className } h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${fontInter.className} h-full antialiased`} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-zinc-950 transition-colors">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

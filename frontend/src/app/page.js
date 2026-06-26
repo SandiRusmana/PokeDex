@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTheme } from "next-themes";
+import Link from "next/link";
 
 // Use relative URL — Next.js rewrites proxy /api/* to Laravel backend
 const API_BASE = "";
@@ -58,8 +60,12 @@ async function fetchMyPokemon() {
 
 // ─── Komponen: Navbar ────────────────────────────────────────────
 function Navbar({ koleksiCount }) {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
-    <nav className="w-full bg-white border-2 border-blue-500 rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between">
+    <nav className="w-full bg-white dark:bg-zinc-800 border-2 border-blue-500 dark:border-blue-400 rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between transition-colors">
       {/* Kiri: Pokéball icon + Logo Pokémon */}
       <div className="flex items-center gap-2 sm:gap-3">
         <img
@@ -77,17 +83,27 @@ function Navbar({ koleksiCount }) {
       {/* Kanan: Menu navigasi */}
       <div className="flex items-center gap-1 sm:gap-3 text-xs sm:text-sm font-bold ">
         {/* BERANDA — aktif */}
-        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
+        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
           BERANDA
         </button>
         {/* KOLEKSI SAYA */}
-        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
+        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
           KOLEKSI SAYA ({koleksiCount})
         </button>
         {/* RIWAYAT */}
-        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
+        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 dark:text-zinc-300 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
           RIWAYAT
         </button>
+        {/* TEMA TOGGLE */}
+        {mounted && (
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="ml-2 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
+            aria-label="Toggle Dark Mode"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+        )}
       </div>
     </nav>
   );
@@ -96,7 +112,7 @@ function Navbar({ koleksiCount }) {
 // ─── Komponen: Hero Banner ───────────────────────────────────────
 function HeroBanner() {
   return (
-    <div className="w-full border-2 border-blue-500 rounded-2xl overflow-hidden">
+    <div className="w-full border-2 border-blue-500 dark:border-blue-400 rounded-2xl overflow-hidden">
       <img
         src="/tamnellogo.jpeg"
         alt="Pikachu Banner"
@@ -126,7 +142,7 @@ function SearchBar({ value, onChange }) {
         placeholder="Cari nama atau nomor Pokémon..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-12 pr-4 py-3 border-2 border-blue-500 rounded-full text-sm sm:text-base outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all bg-white"
+        className="w-full pl-12 pr-4 py-3 border-2 border-blue-500 dark:border-blue-400 rounded-full text-sm sm:text-base outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500"
       />
     </div>
   );
@@ -141,7 +157,7 @@ function PokemonCard({ pokemon }) {
   const types = pokemon.types || [];
 
   return (
-    <div className="bg-white border-2 border-blue-500 rounded-2xl p-6 flex flex-col items-start gap-3 hover:shadow-lg transition-shadow">
+    <Link href={`/pokemon/${pokemon.id}`} className="bg-white border-2 border-blue-500 dark:border-blue-400 rounded-2xl p-6 flex flex-col items-start gap-3 hover:shadow-lg transition-all cursor-pointer block">
       {/* Area gambar Pokémon */}
       <div className="w-full flex justify-center">
         <div className="w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center overflow-hidden rounded-xl cursor-pointer group">
@@ -179,16 +195,16 @@ function PokemonCard({ pokemon }) {
           );
         })}
       </div>
-    </div>
+    </Link>
   );
 }
 
 // ─── Komponen: Loading Skeleton Card ─────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="bg-white border-2 border-blue-500 rounded-2xl p-6 flex flex-col items-start gap-3 animate-pulse">
+    <div className="bg-white border-2 border-blue-500 dark:border-blue-400 rounded-2xl p-6 flex flex-col items-start gap-3 animate-pulse">
       <div className="w-full flex justify-center">
-        <div className="w-36 h-36 sm:w-44 sm:h-44 border border-zinc-200 rounded-xl bg-zinc-100 flex items-center justify-center overflow-hidden">
+        <div className="w-36 h-36 sm:w-44 sm:h-44 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
           <img
             src="/telurpokemon.jpeg"
             alt="Loading..."
@@ -261,7 +277,7 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-[#cda434] flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8">
+    <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       {/* Container utama: tanpa card putih besar, tapi layout tetap rapi */}
       <div className="w-full max-w-6xl flex flex-col gap-6 sm:gap-8">
         {/* Navbar */}
@@ -275,10 +291,10 @@ export default function Home() {
 
         {/* Section Header */}
         <div>
-          <h2 className="text-lg sm:text-xl font-extrabold text-zinc-900">
+          <h2 className="text-lg sm:text-xl font-extrabold text-zinc-900 dark:text-zinc-100">
             Semua Pokémon (Data)
           </h2>
-          <hr className="mt-2.5 border-zinc-400" />
+          <hr className="mt-2.5 border-zinc-400 dark:border-zinc-600" />
         </div>
 
         {/* Error state */}
@@ -299,11 +315,11 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {loading
               ? Array.from({ length: 20 }).map((_, i) => (
-                  <SkeletonCard key={`skeleton-${i}`} />
-                ))
+                <SkeletonCard key={`skeleton-${i}`} />
+              ))
               : filteredList.map((pokemon) => (
-                  <PokemonCard key={pokemon.id} pokemon={pokemon} />
-                ))}
+                <PokemonCard key={pokemon.id} pokemon={pokemon} />
+              ))}
           </div>
         )}
 
@@ -315,7 +331,7 @@ export default function Home() {
               alt="Tidak ditemukan"
               className="w-24 h-24 mx-auto mb-4 opacity-50"
             />
-            <p className="text-zinc-500 font-medium">
+            <p className="text-zinc-500 dark:text-zinc-400 font-medium">
               Pokémon tidak ditemukan untuk &ldquo;{debouncedSearch}&rdquo;
             </p>
           </div>
