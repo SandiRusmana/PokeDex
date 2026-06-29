@@ -88,7 +88,12 @@ function Navbar({ koleksiCount }) {
         </button>
         {/* KOLEKSI SAYA */}
         <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
-          KOLEKSI SAYA ({koleksiCount})
+          <Link
+            href="/koleksi"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110"
+          >
+            KOLEKSI SAYA ({koleksiCount})
+          </Link>
         </button>
         {/* RIWAYAT */}
         <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 dark:text-zinc-300 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
@@ -157,12 +162,17 @@ function PokemonCard({ pokemon }) {
   const types = pokemon.types || [];
 
   return (
-    <Link href={`/pokemon/${pokemon.id}`} className="bg-white border-2 border-blue-500 dark:border-blue-400 rounded-2xl p-6 flex flex-col items-start gap-3 hover:shadow-lg transition-all cursor-pointer block">
+    <Link
+      href={`/pokemon/${pokemon.id}`}
+      className="bg-white border-3 border-blue-500 rounded-2xl p-6 flex flex-col items-start gap-3 shadow-[0_0_15px_3px_rgba(96,165,250,0.6)] hover:shadow-[0_0_25px_6px_rgba(59,130,246,0.7)] transition-shadow"
+    >
       {/* Area gambar Pokémon */}
       <div className="w-full flex justify-center">
         <div className="w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center overflow-hidden rounded-xl cursor-pointer group">
           <img
-            src={imgError || !pokemon.image ? "/telurpokemon.jpeg" : pokemon.image}
+            src={
+              imgError || !pokemon.image ? "/telurpokemon.jpeg" : pokemon.image
+            }
             alt={pokemon.name}
             className="w-full h-full object-contain p-2 transition-transform duration-300 ease-out group-hover:scale-110"
             loading="lazy"
@@ -172,7 +182,9 @@ function PokemonCard({ pokemon }) {
       </div>
 
       {/* Nomor Pokémon */}
-      <span className="text-sm font-bold text-zinc-500 mt-2">{displayNumber}</span>
+      <span className="text-sm font-bold text-zinc-500 mt-2">
+        {displayNumber}
+      </span>
 
       {/* Nama Pokémon */}
       <h3 className="text-lg sm:text-xl font-extrabold text-zinc-900 leading-tight">
@@ -315,11 +327,11 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {loading
               ? Array.from({ length: 20 }).map((_, i) => (
-                <SkeletonCard key={`skeleton-${i}`} />
-              ))
+                  <SkeletonCard key={`skeleton-${i}`} />
+                ))
               : filteredList.map((pokemon) => (
-                <PokemonCard key={pokemon.id} pokemon={pokemon} />
-              ))}
+                  <PokemonCard key={pokemon.id} pokemon={pokemon} />
+                ))}
           </div>
         )}
 

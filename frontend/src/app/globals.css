@@ -28,4 +28,38 @@
   --color-type-dark: #705746;
   --color-type-steel: #B7B7CE;
   --color-type-fairy: #D685AD;
+
+  /* Catch page animations */
+  --animate-pokeball-throw: pokeballThrow 1.4s ease-in-out;
+  --animate-catch-pop: catchPop 0.5s ease-out;
+  --animate-escape-shake: escapeShake 0.5s ease-in-out;
+  --animate-bounce-slow: bounceSlow 1.4s ease-in-out infinite;
+}
+
+@keyframes pokeballThrow {
+  0% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-40px) rotate(180deg); }
+  60% { transform: translateY(0) rotate(360deg); }
+  75% { transform: translateY(0) rotate(380deg); }
+  85% { transform: translateY(0) rotate(340deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+
+@keyframes catchPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes escapeShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+@keyframes bounceSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }

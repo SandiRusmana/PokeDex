@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-
-const API_BASE = "";
+import Image from "next/image";
+import Link from "next/link";
+const API_BASE = "http://127.0.0.1:8000";
 
 // Mapping warna per tipe Pokémon (sama seperti di halaman list)
 const TYPE_COLORS = {
@@ -37,6 +38,16 @@ const STAT_LABELS = {
   speed: "Speed",
 };
 
+// NEW: Warna berbeda per jenis stat, biar tidak monoton biru semua
+const STAT_COLORS = {
+  hp: "#F87171",
+  attack: "#FB923C",
+  defense: "#60A5FA",
+  "special-attack": "#A78BFA",
+  "special-defense": "#34D399",
+  speed: "#FBBF24",
+};
+
 /**
  * Fetch detail Pokémon dari backend.
  * Response: {id, name, image, types[], height, weight, abilities[], stats[]}
@@ -62,7 +73,9 @@ function AboutTab({ pokemon }) {
             <span
               key={type}
               className="px-3 py-1 rounded-md text-xs font-bold text-white uppercase"
-              style={{ backgroundColor: TYPE_COLORS[type.toLowerCase()] || "#999" }}
+              style={{
+                backgroundColor: TYPE_COLORS[type.toLowerCase()] || "#999",
+              }}
             >
               {type}
             </span>
@@ -92,7 +105,9 @@ function AboutTab({ pokemon }) {
       </Row>
 
       <Row label="Experience">
-        <span className="text-zinc-600">{pokemon.base_experience ?? "-"} XP</span>
+        <span className="text-zinc-600">
+          {pokemon.base_experience ?? "-"} XP
+        </span>
       </Row>
     </div>
   );
@@ -102,26 +117,41 @@ function AboutTab({ pokemon }) {
 function Row({ label, children }) {
   return (
     <div className="flex items-start gap-6">
-      <span className="w-24 text-sm font-semibold text-zinc-500 shrink-0">{label}</span>
+      <span className="w-24 text-sm font-semibold text-zinc-500 shrink-0">
+        {label}
+      </span>
       {children}
     </div>
   );
 }
 
 // ─── Komponen: Tab "Stats" ────────────────────────────────────────
+// CHANGED: width label diperlebar (w-20 -> w-24) + warna per stat + animasi mengisi + total
 function StatsTab({ pokemon }) {
   const stats = pokemon.stats || [];
   const maxStatValue = 150; // dipakai untuk skala panjang bar
+  const [animated, setAnimated] = useState(false);
+
+  // Animasi mengisi bar dari 0 setiap kali tab Stats dibuka
+  useEffect(() => {
+    setAnimated(false);
+    const timer = setTimeout(() => setAnimated(true), 50);
+    return () => clearTimeout(timer);
+  }, [pokemon]);
+
+  const total = stats.reduce((sum, s) => sum + s.value, 0);
 
   return (
     <div className="flex flex-col gap-4 mt-6">
       {stats.map((stat) => {
-        const label = STAT_LABELS[stat.name] || stat.name;
+        const key = stat.name.toLowerCase();
+        const label = STAT_LABELS[key] || stat.name;
+        const color = STAT_COLORS[key] || "#3B82F6";
         const percent = Math.min((stat.value / maxStatValue) * 100, 100);
 
         return (
           <div key={stat.name} className="flex items-center gap-4">
-            <span className="w-20 text-sm font-semibold text-zinc-500 shrink-0">
+            <span className="w-24 text-sm font-semibold text-zinc-500 shrink-0">
               {label}
             </span>
             <span className="w-10 text-sm font-bold text-zinc-700 text-right shrink-0">
@@ -129,21 +159,35 @@ function StatsTab({ pokemon }) {
             </span>
             <div className="flex-1 h-2.5 bg-zinc-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-blue-500 rounded-full"
-                style={{ width: `${percent}%` }}
+                className="h-full rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: animated ? `${percent}%` : "0%",
+                  backgroundColor: color,
+                }}
               />
             </div>
           </div>
         );
       })}
+
+      {/* NEW: Total stat sebagai penutup visual */}
+      <div className="flex items-center gap-4 pt-2 mt-1 border-t border-zinc-200">
+        <span className="w-24 text-sm font-bold text-zinc-700 shrink-0">
+          Total
+        </span>
+        <span className="w-10 text-sm font-bold text-zinc-900 text-right shrink-0">
+          {total}
+        </span>
+      </div>
     </div>
   );
 }
 
 // ─── Komponen: Skeleton saat loading ─────────────────────────────
+// CHANGED: background gradient, bukan solid
 function DetailSkeleton() {
   return (
-    <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       <div className="w-full max-w-5xl flex flex-col gap-8 animate-pulse">
         <div className="flex justify-between">
           <div className="h-6 w-40 bg-black/10 dark:bg-white/10 rounded" />
@@ -197,9 +241,10 @@ export default function PokemonDetailPage() {
   }
 
   // ── Error state ──
+  // CHANGED: background gradient, bukan solid
   if (error || !pokemon) {
     return (
-      <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center justify-center px-4 gap-4 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center justify-center px-4 gap-4 transition-colors duration-300">
         <p className="text-zinc-900 dark:text-zinc-100 font-semibold text-center">
           Gagal memuat detail Pokémon{error ? `: ${error}` : ""}
         </p>
@@ -223,9 +268,12 @@ export default function PokemonDetailPage() {
 
   const displayNumber = String(pokemon.id).padStart(4, "0");
   const displayName = pokemon.name.toUpperCase();
+  const mainType = (pokemon.types?.[0] || "normal").toLowerCase();
+  const glowColor = TYPE_COLORS[mainType] || "#999";
 
   return (
-    <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
+    // CHANGED: background gradient, bukan solid
+    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       <div className="w-full max-w-5xl flex flex-col gap-8">
         {/* Header: tombol kembali + counter catch */}
         <div className="flex items-center justify-between">
@@ -236,8 +284,10 @@ export default function PokemonDetailPage() {
             <span aria-hidden="true">←</span> Kembali ke Beranda
           </button>
 
-          <div className="bg-white border-2 border-zinc-300 dark:border-zinc-600 rounded-full px-5 py-2 font-bold text-zinc-800 transition-colors">
-            0 Catch 🔴
+          {/* CHANGED: border jadi biru, konsisten dengan card About/Stats */}
+          <div className="bg-white border-2 border-blue-500 dark:border-blue-400 rounded-full px-10 py-2 font-bold text-zinc-800 transition-colors flex items-center gap-2">
+            <img src="/telurpokemon.jpeg" alt="Pokeball" className="w-10 h-10" />0
+            Catch
           </div>
         </div>
 
@@ -249,29 +299,56 @@ export default function PokemonDetailPage() {
               #{displayNumber}
             </span>
             <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              🔴 {displayName}
+              <img
+                src="/telurpokemon.jpeg"
+                alt="Pokeball"
+                className="w-10 h-10"
+              />
+              {displayName}
             </h1>
 
-            <img
-              src={pokemon.image}
-              alt={pokemon.name}
-              className="w-56 h-56 object-contain"
-            />
+            {/* NEW: Spotlight di belakang gambar, warnanya ikut tipe utama Pokémon */}
+            <div className="relative w-56 h-56 flex items-center justify-center">
+              <div
+                className="absolute inset-0 rounded-full blur-2xl opacity-40"
+                style={{ backgroundColor: glowColor }}
+              />
+              <img
+                src={pokemon.image}
+                alt={pokemon.name}
+                className="relative w-56 h-56 object-contain drop-shadow-xl"
+              />
+            </div>
 
-            <button className="mt-2 flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-500 dark:border-blue-400 rounded-full font-bold text-zinc-800 hover:bg-blue-50 transition-colors cursor-pointer">
-              🔴 CATCH ME!
-            </button>
+            {/* CHANGED: tombol jadi solid merah, lebih menonjol sebagai CTA utama */}
+            <Link href={`/catch/${params.id}`}>
+              <button className="mt-2 flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-500 rounded-full font-bold text-black shadow-lg shadow-blue-500/40 hover:bg-blue-50 hover:shadow-xl hover:shadow-blue-500/50 transition-all cursor-pointer">
+                <img
+                  src="/telurpokemon.jpeg"
+                  alt="Pokeball"
+                  className="w-10 h-10"
+                />
+                CATCH ME!
+              </button>
+            </Link>
           </div>
 
           {/* Kolom kanan: card About/Stats */}
           <div className="w-full max-w-md bg-white border-2 border-blue-500 dark:border-blue-400 rounded-2xl p-6 transition-colors">
             {/* Tab switcher */}
-            <div className="flex bg-zinc-100 rounded-full p-1 transition-colors">
+            {/* CHANGED: pill kuning sekarang slide pakai relative+absolute, bukan loncat */}
+            <div className="relative flex bg-zinc-100 rounded-full p-1 transition-colors">
+              <div
+                className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-amber-200 rounded-full transition-all duration-300 ease-out"
+                style={{
+                  left: activeTab === "about" ? "4px" : "calc(50% + 0px)",
+                }}
+              />
               <button
                 onClick={() => setActiveTab("about")}
-                className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer ${
+                className={`relative flex-1 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer ${
                   activeTab === "about"
-                    ? "bg-amber-200 text-zinc-900"
+                    ? "text-zinc-900"
                     : "text-zinc-500 hover:text-zinc-700"
                 }`}
               >
@@ -279,16 +356,16 @@ export default function PokemonDetailPage() {
               </button>
               <button
                 onClick={() => setActiveTab("stats")}
-                className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer ${
+                className={`relative flex-1 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer ${
                   activeTab === "stats"
-                    ? "bg-amber-200 text-zinc-900"
+                    ? "text-zinc-900"
                     : "text-zinc-500 hover:text-zinc-700"
                 }`}
               >
                 Stats
               </button>
             </div>
-
+                
             {/* Isi tab */}
             {activeTab === "about" ? (
               <AboutTab pokemon={pokemon} />

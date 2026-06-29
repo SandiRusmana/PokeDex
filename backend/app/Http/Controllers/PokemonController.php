@@ -108,9 +108,9 @@ class PokemonController extends Controller
             $responses = Http::pool(function ($pool) use ($ids) {
                 foreach ($ids as $id) {
                     $pool->as("pokemon_{$id}")
-                         ->retry(2, 200)
-                         ->timeout(10)
-                         ->get("https://pokeapi.co/api/v2/pokemon/{$id}");
+                        ->retry(2, 200)
+                        ->timeout(10)
+                        ->get("https://pokeapi.co/api/v2/pokemon/{$id}");
                 }
             });
 
@@ -135,8 +135,8 @@ class PokemonController extends Controller
                         'name' => ucfirst($detail['name']),
                         'image' => "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{$detail['id']}.png",
                         'types' => $types,
-                        'height' => $detail['height'],
-                        'weight' => $detail['weight'],
+                        'height' => $detail['height'] / 10,
+                        'weight' => $detail['weight'] / 10,
                         'abilities' => collect($detail['abilities'])->map(fn($item) => ucfirst($item['ability']['name']))->toArray(),
                         'stats' => collect($detail['stats'])->map(fn($item) => [
                             'name' => ucfirst($item['stat']['name']),
@@ -194,8 +194,8 @@ class PokemonController extends Controller
                 'name' => ucfirst($data['name']),
                 'image' => "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{$pokemonId}.png",
                 'types' => $types,
-                'height' => $data['height'],
-                'weight' => $data['weight'],
+                'height' => $data['height'] / 10,
+                'weight' => $data['weight'] / 10,
                 'abilities' => $abilities,
                 'stats' => $stats
             ];
