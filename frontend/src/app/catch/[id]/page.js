@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "";
 
 // Mapping warna per tipe Pokémon (sama seperti di halaman detail)
 const TYPE_COLORS = {
