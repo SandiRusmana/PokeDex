@@ -42,15 +42,29 @@ async function fetchMyPokemon() {
 }
 
 // ─── Card untuk satu pokemon di koleksi ──────────────────────────
-function KoleksiCard({ pokemon }) {
+function KoleksiCard({ pokemon, onRelease }) {
   const mainType = (pokemon.types?.[0] || "normal").toLowerCase();
   const glowColor = TYPE_COLORS[mainType] || "#999";
 
+  const handleRelease = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onRelease(pokemon);
+  };
+
   return (
     <Link
-      href={`/pokemon/${pokemon.id}`}
-      className="bg-white border-2 border-blue-500 rounded-2xl p-4 flex flex-col items-center text-center transition-colors hover:shadow-lg"
+      href={`/pokemon/${pokemon.pokemon_id || pokemon.id}`}
+      className="relative bg-white border-2 border-blue-500 rounded-2xl p-4 flex flex-col items-center text-center transition-colors hover:shadow-lg"
     >
+      <button
+        onClick={handleRelease}
+        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full shadow-sm transition-colors cursor-pointer z-10"
+        title="Lepaskan Pokémon"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </button>
+
       <div className="relative w-28 h-28 flex items-center justify-center mb-2">
         <div
           className="absolute inset-0 rounded-full blur-xl opacity-40"
@@ -64,6 +78,18 @@ function KoleksiCard({ pokemon }) {
       </div>
 
       <h3 className="font-bold text-zinc-900 capitalize">{pokemon.name}</h3>
+
+      {pokemon.created_at && (
+        <span className="text-[10px] text-zinc-500 mt-1">
+          Ditangkap: {new Date(pokemon.created_at).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      )}
 
       <div className="flex gap-1.5 flex-wrap justify-center mt-2">
         {(pokemon.types || []).map((type) => (
@@ -153,6 +179,11 @@ export default function KoleksiPage() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // State untuk konfirmasi hapus
+  const [pokemonToRelease, setPokemonToRelease] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [feedbackMsg, setFeedbackMsg] = useState("");
+
   const loadKoleksi = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -177,12 +208,84 @@ export default function KoleksiPage() {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const nameMatch = pokemon.name.toLowerCase().includes(query);
-    const numberMatch = String(pokemon.id).padStart(4, "0").includes(query);
+    const numberMatch = String(pokemon.pokemon_id).padStart(4, "0").includes(query);
     return nameMatch || numberMatch;
   });
 
+  const handleReleaseClick = (pokemon) => {
+    setPokemonToRelease(pokemon);
+  };
+
+  const confirmRelease = async () => {
+    if (!pokemonToRelease) return;
+    setIsDeleting(true);
+    
+    try {
+      const res = await fetch(`${API_BASE}/api/my-pokemon/${pokemonToRelease.id}`, {
+        method: "DELETE",
+        headers: { Accept: "application/json" },
+      });
+      const json = await res.json();
+      
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Gagal menghapus pokemon");
+      }
+
+      setKoleksi(prev => prev.filter(p => p.id !== pokemonToRelease.id));
+      setFeedbackMsg(`Berhasil melepaskan ${pokemonToRelease.name}!`);
+      setTimeout(() => setFeedbackMsg(""), 3000);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setIsDeleting(false);
+      setPokemonToRelease(null);
+    }
+  };
+
+  const cancelRelease = () => {
+    setPokemonToRelease(null);
+  };
+
   return (
     <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
+      {/* Modal Konfirmasi */}
+      {pokemonToRelease && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center text-center">
+            <img src={pokemonToRelease.image} alt={pokemonToRelease.name} className="w-24 h-24 mb-4 object-contain drop-shadow-md" />
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+              Lepaskan {pokemonToRelease.name}?
+            </h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+              Pokemon ini akan dikembalikan ke alam liar dan dihapus dari koleksimu.
+            </p>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={cancelRelease}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-800 dark:text-zinc-200 font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmRelease}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex justify-center items-center gap-2 cursor-pointer"
+              >
+                {isDeleting ? "..." : "Ya, Lepaskan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Toast */}
+      {feedbackMsg && (
+        <div className="fixed bottom-4 right-4 z-40 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg font-bold">
+          {feedbackMsg}
+        </div>
+      )}
+
       <div className="w-full max-w-6xl flex flex-col gap-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -226,7 +329,7 @@ export default function KoleksiPage() {
                   <SkeletonCard key={`skeleton-${i}`} />
                 ))
               : filteredKoleksi.map((pokemon) => (
-                  <KoleksiCard key={pokemon.id} pokemon={pokemon} />
+                  <KoleksiCard key={pokemon.id} pokemon={pokemon} onRelease={handleReleaseClick} />
                 ))}
           </div>
         )}

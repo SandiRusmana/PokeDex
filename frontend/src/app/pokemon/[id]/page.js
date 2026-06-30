@@ -84,11 +84,11 @@ function AboutTab({ pokemon }) {
       </Row>
 
       <Row label="Height">
-        <span className="text-zinc-600">{pokemon.height} m</span>
+        <span className="text-zinc-600 dark:text-zinc-300">{pokemon.height} m</span>
       </Row>
 
       <Row label="Weight">
-        <span className="text-zinc-600">{pokemon.weight} kg</span>
+        <span className="text-zinc-600 dark:text-zinc-300">{pokemon.weight} kg</span>
       </Row>
 
       <Row label="Abilities">
@@ -96,7 +96,7 @@ function AboutTab({ pokemon }) {
           {abilities.map((ability) => (
             <span
               key={ability}
-              className="px-3 py-1 border border-zinc-400 rounded-full text-sm text-zinc-700 capitalize w-fit"
+              className="px-3 py-1 border border-zinc-400 dark:border-zinc-500 rounded-full text-sm text-zinc-700 dark:text-zinc-300 capitalize w-fit"
             >
               {ability}
             </span>
@@ -105,7 +105,7 @@ function AboutTab({ pokemon }) {
       </Row>
 
       <Row label="Experience">
-        <span className="text-zinc-600">
+        <span className="text-zinc-600 dark:text-zinc-300">
           {pokemon.base_experience ?? "-"} XP
         </span>
       </Row>
@@ -117,7 +117,7 @@ function AboutTab({ pokemon }) {
 function Row({ label, children }) {
   return (
     <div className="flex items-start gap-6">
-      <span className="w-24 text-sm font-semibold text-zinc-500 shrink-0">
+      <span className="w-24 text-sm font-semibold text-zinc-500 dark:text-zinc-400 shrink-0">
         {label}
       </span>
       {children}
@@ -151,13 +151,13 @@ function StatsTab({ pokemon }) {
 
         return (
           <div key={stat.name} className="flex items-center gap-4">
-            <span className="w-24 text-sm font-semibold text-zinc-500 shrink-0">
+            <span className="w-24 text-sm font-semibold text-zinc-500 dark:text-zinc-400 shrink-0">
               {label}
             </span>
-            <span className="w-10 text-sm font-bold text-zinc-700 text-right shrink-0">
+            <span className="w-10 text-sm font-bold text-zinc-700 dark:text-zinc-300 text-right shrink-0">
               {stat.value}
             </span>
-            <div className="flex-1 h-2.5 bg-zinc-200 rounded-full overflow-hidden">
+            <div className="flex-1 h-2.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700 ease-out"
                 style={{
@@ -171,11 +171,11 @@ function StatsTab({ pokemon }) {
       })}
 
       {/* NEW: Total stat sebagai penutup visual */}
-      <div className="flex items-center gap-4 pt-2 mt-1 border-t border-zinc-200">
-        <span className="w-24 text-sm font-bold text-zinc-700 shrink-0">
+      <div className="flex items-center gap-4 pt-2 mt-1 border-t border-zinc-200 dark:border-zinc-700">
+        <span className="w-24 text-sm font-bold text-zinc-700 dark:text-zinc-300 shrink-0">
           Total
         </span>
-        <span className="w-10 text-sm font-bold text-zinc-900 text-right shrink-0">
+        <span className="w-10 text-sm font-bold text-zinc-900 dark:text-zinc-100 text-right shrink-0">
           {total}
         </span>
       </div>
@@ -187,7 +187,7 @@ function StatsTab({ pokemon }) {
 // CHANGED: background gradient, bukan solid
 function DetailSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       <div className="w-full max-w-5xl flex flex-col gap-8 animate-pulse">
         <div className="flex justify-between">
           <div className="h-6 w-40 bg-black/10 dark:bg-white/10 rounded" />
@@ -216,6 +216,7 @@ export default function PokemonDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("about"); // "about" | "stats"
+  const [catchCount, setCatchCount] = useState(0);
 
   const loadDetail = useCallback(async () => {
     setLoading(true);
@@ -223,6 +224,21 @@ export default function PokemonDetailPage() {
     try {
       const data = await fetchPokemonDetail(id);
       setPokemon(data);
+
+      // Ambil data jumlah pokemon yang sudah ditangkap
+      try {
+        const myPokemonRes = await fetch(`${API_BASE}/api/my-pokemon`, {
+          headers: { Accept: "application/json" },
+        });
+        if (myPokemonRes.ok) {
+          const myPokemonData = await myPokemonRes.json();
+          if (myPokemonData.success) {
+            setCatchCount(myPokemonData.data.length);
+          }
+        }
+      } catch (err) {
+        console.error("Gagal mengambil data my-pokemon", err);
+      }
     } catch (err) {
       setError(err.message);
       setPokemon(null);
@@ -244,7 +260,7 @@ export default function PokemonDetailPage() {
   // CHANGED: background gradient, bukan solid
   if (error || !pokemon) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center justify-center px-4 gap-4 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 flex flex-col items-center justify-center px-4 gap-4 transition-colors duration-300">
         <p className="text-zinc-900 dark:text-zinc-100 font-semibold text-center">
           Gagal memuat detail Pokémon{error ? `: ${error}` : ""}
         </p>
@@ -273,7 +289,7 @@ export default function PokemonDetailPage() {
 
   return (
     // CHANGED: background gradient, bukan solid
-    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       <div className="w-full max-w-5xl flex flex-col gap-8">
         {/* Header: tombol kembali + counter catch */}
         <div className="flex items-center justify-between">
@@ -285,9 +301,9 @@ export default function PokemonDetailPage() {
           </button>
 
           {/* CHANGED: border jadi biru, konsisten dengan card About/Stats */}
-          <div className="bg-white border-2 border-blue-500 dark:border-blue-400 rounded-full px-10 py-2 font-bold text-zinc-800 transition-colors flex items-center gap-2">
-            <img src="/telurpokemon.jpeg" alt="Pokeball" className="w-10 h-10" />0
-            Catch
+          <div className="bg-white dark:bg-zinc-800 border-2 border-blue-500 dark:border-blue-400 rounded-full px-10 py-2 font-bold text-zinc-800 dark:text-zinc-200 transition-colors flex items-center gap-2">
+            <img src="/telurpokemon.jpeg" alt="Pokeball" className="w-10 h-10" />
+            {catchCount} Catch
           </div>
         </div>
 
@@ -322,7 +338,7 @@ export default function PokemonDetailPage() {
 
             {/* CHANGED: tombol jadi solid merah, lebih menonjol sebagai CTA utama */}
             <Link href={`/catch/${params.id}`}>
-              <button className="mt-2 flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-500 rounded-full font-bold text-black shadow-lg shadow-blue-500/40 hover:bg-blue-50 hover:shadow-xl hover:shadow-blue-500/50 transition-all cursor-pointer">
+              <button className="mt-2 flex items-center gap-2 px-6 py-3 bg-white dark:bg-zinc-800 border-2 border-blue-500 rounded-full font-bold text-black dark:text-white shadow-lg shadow-blue-500/40 hover:bg-blue-50 dark:hover:bg-zinc-700 hover:shadow-xl hover:shadow-blue-500/50 transition-all cursor-pointer">
                 <img
                   src="/telurpokemon.jpeg"
                   alt="Pokeball"
@@ -334,12 +350,12 @@ export default function PokemonDetailPage() {
           </div>
 
           {/* Kolom kanan: card About/Stats */}
-          <div className="w-full max-w-md bg-white border-2 border-blue-500 dark:border-blue-400 rounded-2xl p-6 transition-colors">
+          <div className="w-full max-w-md bg-white dark:bg-zinc-800 border-2 border-blue-500 dark:border-blue-400 rounded-2xl p-6 transition-colors">
             {/* Tab switcher */}
             {/* CHANGED: pill kuning sekarang slide pakai relative+absolute, bukan loncat */}
-            <div className="relative flex bg-zinc-100 rounded-full p-1 transition-colors">
+            <div className="relative flex bg-zinc-100 dark:bg-zinc-700 rounded-full p-1 transition-colors">
               <div
-                className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-amber-200 rounded-full transition-all duration-300 ease-out"
+                className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-amber-200 dark:bg-amber-500/80 rounded-full transition-all duration-300 ease-out"
                 style={{
                   left: activeTab === "about" ? "4px" : "calc(50% + 0px)",
                 }}
@@ -348,8 +364,8 @@ export default function PokemonDetailPage() {
                 onClick={() => setActiveTab("about")}
                 className={`relative flex-1 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer ${
                   activeTab === "about"
-                    ? "text-zinc-900"
-                    : "text-zinc-500 hover:text-zinc-700"
+                    ? "text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                 }`}
               >
                 About
@@ -358,8 +374,8 @@ export default function PokemonDetailPage() {
                 onClick={() => setActiveTab("stats")}
                 className={`relative flex-1 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer ${
                   activeTab === "stats"
-                    ? "text-zinc-900"
-                    : "text-zinc-500 hover:text-zinc-700"
+                    ? "text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                 }`}
               >
                 Stats

@@ -34,7 +34,9 @@ class PokemonController extends Controller
 
             if ($search) {
                 $results = $results->filter(function ($pokemon) use ($search) {
-                    return Str::contains(strtolower($pokemon['name']), strtolower($search));
+                    $parts = explode('/', rtrim($pokemon['url'], '/'));
+                    $id = end($parts);
+                    return Str::contains(strtolower($pokemon['name']), strtolower($search)) || $id == $search;
                 })->take(20)->values();
             }
 
@@ -86,7 +88,9 @@ class PokemonController extends Controller
 
             if ($search) {
                 $results = $results->filter(function ($pokemon) use ($search) {
-                    return Str::contains(strtolower($pokemon['name']), strtolower($search));
+                    $parts = explode('/', rtrim($pokemon['url'], '/'));
+                    $id = end($parts);
+                    return Str::contains(strtolower($pokemon['name']), strtolower($search)) || $id == $search;
                 })->take(20)->values();
             }
 

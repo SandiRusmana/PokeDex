@@ -168,13 +168,17 @@ function PokemonCard({ pokemon }) {
     >
       {/* Area gambar Pokémon */}
       <div className="w-full flex justify-center">
-        <div className="w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center overflow-hidden rounded-xl cursor-pointer group">
+        <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center rounded-xl cursor-pointer group">
+          <div
+            className="absolute inset-0 rounded-full blur-2xl opacity-40 transition-opacity duration-300 group-hover:opacity-60"
+            style={{ backgroundColor: TYPE_COLORS[(types[0] || "normal").toLowerCase()] || "#999" }}
+          />
           <img
             src={
               imgError || !pokemon.image ? "/telurpokemon.jpeg" : pokemon.image
             }
             alt={pokemon.name}
-            className="w-full h-full object-contain p-2 transition-transform duration-300 ease-out group-hover:scale-110"
+            className="relative w-full h-full object-contain p-2 transition-transform duration-300 ease-out group-hover:scale-110 drop-shadow-xl"
             loading="lazy"
             onError={() => setImgError(true)}
           />

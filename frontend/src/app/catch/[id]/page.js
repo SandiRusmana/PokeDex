@@ -44,10 +44,20 @@ async function fetchPokemonDetail(id) {
  * Sesuaikan endpoint ini dengan route Laravel kamu.
  * Response yang diharapkan: { success: true/false } atau sejenisnya
  */
-async function submitCatch(id) {
-  const res = await fetch(`${API_BASE}/api/pokemon/${id}/catch`, {
+async function submitCatch(pokemon) {
+  const payload = {
+    pokemon_id: pokemon.id,
+    name: pokemon.name,
+    image: pokemon.image,
+    types: pokemon.types || [],
+    height: Math.round(pokemon.height || 0),
+    weight: Math.round(pokemon.weight || 0),
+  };
+
+  const res = await fetch(`${API_BASE}/api/pokemon/catch`, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
@@ -56,7 +66,7 @@ async function submitCatch(id) {
 // ─── Skeleton saat loading data pokemon ──────────────────────────
 function CatchSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center justify-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 flex flex-col items-center justify-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       <div className="w-full max-w-sm flex flex-col items-center gap-4 animate-pulse">
         <div className="w-32 h-32 bg-black/10 dark:bg-white/10 rounded-full" />
         <div className="h-6 w-40 bg-black/10 dark:bg-white/10 rounded" />
@@ -106,7 +116,7 @@ export default function CatchPage() {
 
     try {
       // animasi lempar berjalan ~1.4s, baru hasil ditentukan
-      const result = await submitCatch(id);
+      const result = await submitCatch(pokemon);
       setTimeout(() => {
         setPhase(result.success ? "caught" : "escaped");
         setIsSubmitting(false);
@@ -132,7 +142,7 @@ export default function CatchPage() {
 
   if (error || !pokemon) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center justify-center px-4 gap-4 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 flex flex-col items-center justify-center px-4 gap-4 transition-colors duration-300">
         <p className="text-zinc-900 dark:text-zinc-100 font-semibold text-center">
           Gagal memuat Pokémon{error ? `: ${error}` : ""}
         </p>
@@ -159,7 +169,7 @@ export default function CatchPage() {
   const glowColor = TYPE_COLORS[mainType] || "#999";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5c542] via-[#dba92f] to-[#b8860b] dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
       <div className="w-full max-w-sm flex flex-col gap-6">
         {/* Tombol kembali */}
         <button
@@ -170,7 +180,7 @@ export default function CatchPage() {
         </button>
 
         {/* Card utama */}
-        <div className="bg-white border-2 border-blue-500 dark:border-blue-400 rounded-3xl p-8 flex flex-col items-center text-center transition-colors">
+        <div className="bg-white dark:bg-zinc-800 border-2 border-blue-500 dark:border-blue-400 rounded-3xl p-8 flex flex-col items-center text-center transition-colors">
           {/* ── Tampilan pokemon + pokebol, sebelum dilempar ── */}
           {(phase === "idle" || phase === "throwing") && (
             <>
@@ -188,19 +198,19 @@ export default function CatchPage() {
                 />
               </div>
 
-              <h2 className="text-xl font-extrabold text-zinc-900 mb-1">
+              <h2 className="text-xl font-extrabold text-zinc-900 dark:text-zinc-100 mb-1">
                 {phase === "throwing"
                   ? "Melempar Pokebol..."
                   : "Silakan tangkap pokemon"}
               </h2>
-              <p className="text-sm text-zinc-500 mb-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                 {displayName} masuk ke koleksi jika beruntung
               </p>
 
               <button
                 onClick={handleThrow}
                 disabled={phase === "throwing"}
-                className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-500 rounded-full font-bold text-black shadow-lg shadow-blue-500/40 hover:bg-blue-50 hover:shadow-xl hover:shadow-blue-500/50 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-zinc-800 border-2 border-blue-500 rounded-full font-bold text-black dark:text-white shadow-lg shadow-blue-500/40 hover:bg-blue-50 dark:hover:bg-zinc-700 hover:shadow-xl hover:shadow-blue-500/50 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <img
                   src="/telurpokemon.jpeg"
@@ -222,10 +232,10 @@ export default function CatchPage() {
                 alt={pokemon.name}
                 className="w-40 h-40 object-contain drop-shadow-xl mb-2 animate-catch-pop"
               />
-              <h2 className="text-xl font-extrabold text-green-600 mb-1">
+              <h2 className="text-xl font-extrabold text-green-600 dark:text-green-400 mb-1">
                 {displayName} tertangkap!
               </h2>
-              <p className="text-sm text-zinc-500 mb-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                 Pokemon ini sekarang ada di koleksimu.
               </p>
 
@@ -238,7 +248,7 @@ export default function CatchPage() {
                 </button>
                 <button
                   onClick={() => router.push(`/pokemon/${id}`)}
-                  className="px-5 py-3 bg-white border-2 border-zinc-300 text-zinc-700 rounded-full font-bold hover:bg-zinc-50 transition-colors cursor-pointer"
+                  className="px-5 py-3 bg-white dark:bg-zinc-700 border-2 border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-200 rounded-full font-bold hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
                 >
                   Kembali
                 </button>
@@ -254,10 +264,10 @@ export default function CatchPage() {
                 alt={pokemon.name}
                 className="w-40 h-40 object-contain drop-shadow-xl mb-2 grayscale opacity-60 animate-escape-shake"
               />
-              <h2 className="text-xl font-extrabold text-red-500 mb-1">
+              <h2 className="text-xl font-extrabold text-red-500 dark:text-red-400 mb-1">
                 {displayName} kabur!
               </h2>
-              <p className="text-sm text-zinc-500 mb-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                 Sayang sekali, coba lagi lain kali.
               </p>
 
@@ -270,7 +280,7 @@ export default function CatchPage() {
                 </button>
                 <button
                   onClick={() => router.push(`/pokemon/${id}`)}
-                  className="px-5 py-3 bg-white border-2 border-zinc-300 text-zinc-700 rounded-full font-bold hover:bg-zinc-50 transition-colors cursor-pointer"
+                  className="px-5 py-3 bg-white dark:bg-zinc-700 border-2 border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-200 rounded-full font-bold hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
                 >
                   Kembali
                 </button>
