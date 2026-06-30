@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 // Use relative URL — Next.js rewrites proxy /api/* to Laravel backend
 const API_BASE = "";
@@ -61,56 +62,156 @@ async function fetchMyPokemon() {
 // ─── Komponen: Navbar ────────────────────────────────────────────
 function Navbar({ koleksiCount }) {
   const { theme, setTheme } = useTheme();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
   useEffect(() => setMounted(true), []);
 
-  return (
-    <nav className="w-full bg-white dark:bg-zinc-800 border-2 border-blue-500 dark:border-blue-400 rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between transition-colors">
-      {/* Kiri: Pokéball icon + Logo Pokémon */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        <img
-          src="/telurpokemon.jpeg"
-          alt="Pokéball"
-          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-        />
-        <img
-          src="/tpokemon.jpeg"
-          alt="Pokémon Logo"
-          className="h-8 sm:h-10 w-auto object-contain"
-        />
-      </div>
+  const navLinks = [
+    { href: "/", label: "BERANDA" },
+    { href: "/koleksi", label: `KOLEKSI SAYA (${koleksiCount})` },
+    { href: "/riwayat", label: "RIWAYAT" },
+  ];
 
-      {/* Kanan: Menu navigasi */}
-      <div className="flex items-center gap-1 sm:gap-3 text-xs sm:text-sm font-bold ">
-        {/* BERANDA — aktif */}
-        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
-          BERANDA
-        </button>
-        {/* KOLEKSI SAYA */}
-        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
-          <Link
-            href="/koleksi"
-            className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110"
-          >
-            KOLEKSI SAYA ({koleksiCount})
-          </Link>
-        </button>
-        {/* RIWAYAT */}
-        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 dark:text-zinc-300 hover:text-yellow-200 transition-colors cursor-pointer transition-transform duration-300 ease-out group-hover:scale-110">
-          RIWAYAT
-        </button>
-        {/* TEMA TOGGLE */}
-        {mounted && (
+  return (
+    <>
+      <nav className="w-full bg-white dark:bg-zinc-800 border-2 border-blue-500 dark:border-blue-400 rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between transition-colors">
+        {/* Kiri: Pokéball icon + Logo Pokémon */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <img
+            src="/telurpokemon.jpeg"
+            alt="Pokéball"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+          />
+          <img
+            src="/tpokemon.jpeg"
+            alt="Pokémon Logo"
+            className="h-8 sm:h-10 w-auto object-contain"
+          />
+        </div>
+
+        {/* Kanan: Menu navigasi (Desktop) */}
+        <div className="hidden md:flex items-center gap-1 sm:gap-3 text-xs sm:text-sm font-bold">
+          {navLinks.map(({ href, label }) => {
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={
+                  isActive
+                    ? "px-3 sm:px-4 py-1.5 sm:py-2 text-[#e07b00] dark:text-yellow-400 font-extrabold transition-colors"
+                    : "px-3 sm:px-4 py-1.5 sm:py-2 text-zinc-600 dark:text-zinc-300 hover:text-yellow-500 dark:hover:text-yellow-400 font-bold transition-colors"
+                }
+              >
+                {label}
+              </Link>
+            );
+          })}
+
+          {/* TEMA TOGGLE */}
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="ml-2 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
+              aria-label="Toggle Dark Mode"
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+          )}
+        </div>
+
+        {/* Hamburger Icon (Mobile) */}
+        <div className="flex md:hidden items-center gap-2">
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="px-2 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
+              aria-label="Toggle Dark Mode"
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+          )}
           <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="ml-2 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
-            aria-label="Toggle Dark Mode"
+            onClick={() => setIsOpen(true)}
+            className="text-zinc-800 dark:text-zinc-200 focus:outline-none p-1"
+            aria-label="Open Menu"
           >
-            {theme === "dark" ? "☀️" : "🌙"}
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
-        )}
-      </div>
-    </nav>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 bg-white dark:bg-zinc-900 flex flex-col justify-between transition-colors duration-300">
+          {/* Top Bar inside Overlay */}
+          <div className="px-6 py-4 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+            <div className="flex items-center gap-2">
+              <img src="/telurpokemon.jpeg" alt="Pokéball" className="w-8 h-8 rounded-full object-cover" />
+              <img src="/tpokemon.jpeg" alt="Pokémon Logo" className="h-8 w-auto object-contain" />
+            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-zinc-800 dark:text-zinc-200 focus:outline-none p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full"
+              aria-label="Close Menu"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Middle Body */}
+          <div className="flex-1 flex flex-col items-center justify-center gap-10 px-6 py-12">
+            {/* Big styled PokéDex logo */}
+            <div 
+              className="text-center font-black text-5xl tracking-widest select-none uppercase drop-shadow-lg" 
+              style={{ 
+                color: '#ffcb05', 
+                WebkitTextStroke: '2px #3b4cca',
+                fontFamily: 'system-ui, -apple-system, sans-serif'
+              }}
+            >
+              PokéDex
+            </div>
+
+            {/* Vertical Links list */}
+            <div className="flex flex-col gap-6 w-full max-w-xs">
+              {navLinks.map(({ href, label }) => {
+                const isActive = pathname === href;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center justify-center gap-3 py-3 px-6 rounded-xl border-2 transition-all font-extrabold text-center ${
+                      isActive
+                        ? "bg-amber-100 dark:bg-amber-950/40 border-[#e07b00] dark:border-yellow-500 text-[#e07b00] dark:text-yellow-400 shadow-md scale-105"
+                        : "bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    }`}
+                  >
+                    <img src="/telurpokemon.jpeg" alt="Pokeball" className="w-6 h-6 object-cover rounded-full" />
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Bottom Wave/Curve decoration */}
+          <div className="relative h-20 bg-[#cda434] dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-4 bg-white dark:bg-zinc-900 rounded-b-[100%]" />
+            <span className="text-white/40 dark:text-zinc-500 text-xs font-bold tracking-wider">
+              POKÉDEX SYSTEM
+            </span>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

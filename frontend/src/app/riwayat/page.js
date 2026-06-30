@@ -1,29 +1,28 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 
 const API_BASE = "";
 
-const TYPE_COLORS = {
-  normal: "#A8A77A", fire: "#EE8130", water: "#6390F0",
-  electric: "#F7D02C", grass: "#7AC74C", ice: "#96D9D6",
-  fighting: "#C22E28", poison: "#A33EA1", ground: "#E2BF65",
-  flying: "#A98FF3", psychic: "#F95587", bug: "#A6B91A",
-  rock: "#B6A136", ghost: "#735797", dragon: "#6F35FC",
-  dark: "#705746", steel: "#B7B7CE", fairy: "#D685AD",
-};
-
-async function fetchMyPokemon() {
-  const res = await fetch(`${API_BASE}/api/my-pokemon`, {
+async function fetchPokemonHistory() {
+  const res = await fetch(`${API_BASE}/api/pokemon-history`, {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const json = await res.json();
   return json.data || [];
+}
+
+async function fetchMyPokemonCount() {
+  const res = await fetch(`${API_BASE}/api/my-pokemon`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) return 0;
+  const json = await res.json();
+  return (json.data || []).length;
 }
 
 // ─── Navbar ──────────────────────────────────────────────────────
@@ -174,58 +173,57 @@ function Navbar({ koleksiCount }) {
   );
 }
 
-// ─── Card Koleksi (Figma style) ───────────────────────────────────
-function KoleksiCard({ pokemon, onRelease }) {
-  const displayNumber = String(pokemon.pokemon_id || pokemon.id).padStart(4, "0");
-  const displayName = (pokemon.name || "").toUpperCase();
-
-  const handleRelease = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onRelease(pokemon);
-  };
+// ─── Card Riwayat ────────────────────────────────────────────────
+function HistoryCard({ item }) {
+  const displayNumber = String(item.pokemon_id).padStart(4, "0");
+  const displayName = (item.name || "").toUpperCase();
+  const isCatch = item.action === "catch";
 
   return (
     <div className="relative pt-12 group">
       {/* Gambar melayang di atas card */}
-      <Link href={`/pokemon/${pokemon.pokemon_id || pokemon.id}`}>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-28 z-10 drop-shadow-xl transition-transform duration-300 group-hover:-translate-y-2 group-hover:scale-105" style={{top: '-10px'}}>
-          {/* Lingkaran oranye di belakang gambar */}
-          <div className="absolute inset-0 rounded-full bg-orange-300 opacity-60 blur-sm scale-90" />
-          <img
-            src={pokemon.image}
-            alt={pokemon.name}
-            className="relative w-full h-full object-contain"
-          />
-        </div>
-      </Link>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-28 z-10 drop-shadow-xl transition-transform duration-300 group-hover:-translate-y-2 group-hover:scale-105" style={{top: '-10px'}}>
+        {/* Lingkaran oranye di belakang gambar */}
+        <div className="absolute inset-0 rounded-full bg-orange-300 opacity-60 blur-sm scale-90" />
+        <img
+          src={item.image}
+          alt={item.name}
+          className="relative w-full h-full object-contain"
+        />
+      </div>
 
       {/* Card body */}
-      <Link href={`/pokemon/${pokemon.pokemon_id || pokemon.id}`}>
-        <div className="bg-white border-2 border-blue-500 rounded-2xl pt-16 pb-4 px-4 flex flex-col items-start text-left hover:shadow-lg transition-shadow cursor-pointer">
-          {/* Nomor */}
-          <span className="text-xs font-bold text-zinc-500">{displayNumber}</span>
-          {/* Nama */}
-          <h3 className="text-base font-extrabold text-zinc-900 leading-tight mt-0.5">
-            {displayName}
-          </h3>
+      <div className="bg-white border-2 border-blue-500 rounded-2xl pt-16 pb-4 px-4 flex flex-col items-start text-left hover:shadow-lg transition-shadow">
+        {/* Nomor */}
+        <span className="text-xs font-bold text-zinc-500">{displayNumber}</span>
+        {/* Nama */}
+        <h3 className="text-base font-extrabold text-zinc-900 leading-tight mt-0.5">
+          {displayName}
+        </h3>
 
-          {/* Tombol Release */}
-          <button
-            onClick={handleRelease}
-            className="mt-3 flex items-center gap-1.5 bg-white border-2 border-blue-400 hover:bg-blue-50 text-zinc-700 font-bold text-xs px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+        {/* Badge Action Status */}
+        <div className="mt-3 flex items-center justify-between w-full">
+          <span
+            className={`px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase ${
+              isCatch
+                ? "bg-green-100 text-green-700 border border-green-200"
+                : "bg-red-100 text-red-700 border border-red-200"
+            }`}
           >
-            {/* Ikon Pokéball */}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2" fill="white"/>
-              <path d="M2 12h20" stroke="#ef4444" strokeWidth="2"/>
-              <circle cx="12" cy="12" r="3" fill="#ef4444" stroke="white" strokeWidth="1.5"/>
-              <path d="M2 12a10 10 0 0 1 10-10" stroke="#ef4444" strokeWidth="2" fill="none"/>
-            </svg>
-            Release
-          </button>
+            {item.action === "catch" ? "CATCH 🟢" : "RELEASE 🔴"}
+          </span>
+
+          {/* Waktu */}
+          {item.created_at && (
+            <span className="text-[10px] text-zinc-400">
+              {new Date(item.created_at).toLocaleDateString("id-ID", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          )}
         </div>
-      </Link>
+      </div>
     </div>
   );
 }
@@ -260,152 +258,69 @@ function SkeletonCard() {
       <div className="bg-white border-2 border-blue-300 rounded-2xl pt-16 pb-4 px-4 flex flex-col gap-2">
         <div className="h-3 w-10 bg-zinc-200 rounded" />
         <div className="h-5 w-24 bg-zinc-200 rounded" />
-        <div className="h-7 w-20 bg-zinc-100 border border-zinc-200 rounded-full mt-1" />
+        <div className="h-5 w-16 bg-zinc-150 rounded-full mt-1" />
       </div>
     </div>
   );
 }
 
-// ─── Empty State ──────────────────────────────────────────────────
-function EmptyKoleksi() {
-  const router = useRouter();
-  return (
-    <div className="flex flex-col items-center justify-center text-center gap-4 py-20">
-      <img src="/telurpokemon.jpeg" alt="Pokeball" className="w-20 h-20 opacity-50" />
-      <h2 className="text-lg font-bold text-zinc-900">Belum ada pokemon di koleksimu</h2>
-      <p className="text-sm text-zinc-600 max-w-sm">
-        Tangkap pokemon dari halaman utama dulu, nanti hasil tangkapanmu akan muncul di sini.
-      </p>
-      <button
-        onClick={() => router.push("/")}
-        className="mt-2 px-6 py-3 bg-blue-500 text-white rounded-full font-bold hover:bg-blue-600 transition-colors cursor-pointer"
-      >
-        Mulai Menangkap
-      </button>
-    </div>
-  );
-}
-
-// ─── Halaman Koleksi ──────────────────────────────────────────────
-export default function KoleksiPage() {
-  const [koleksi, setKoleksi] = useState([]);
+// ─── Halaman Riwayat ──────────────────────────────────────────────
+export default function RiwayatPage() {
+  const [history, setHistory] = useState([]);
+  const [koleksiCount, setKoleksiCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [pokemonToRelease, setPokemonToRelease] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [feedbackMsg, setFeedbackMsg] = useState("");
-
-  const loadKoleksi = useCallback(async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchMyPokemon();
-      setKoleksi(data);
+      const [historyData, count] = await Promise.all([
+        fetchPokemonHistory(),
+        fetchMyPokemonCount(),
+      ]);
+      setHistory(historyData);
+      setKoleksiCount(count);
     } catch (err) {
       setError(err.message);
-      setKoleksi([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadKoleksi(); }, [loadKoleksi]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  const filteredKoleksi = koleksi.filter((pokemon) => {
+  const filteredHistory = history.filter((item) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    const nameMatch = pokemon.name.toLowerCase().includes(query);
-    const numberMatch = String(pokemon.pokemon_id).padStart(4, "0").includes(query);
+    const nameMatch = item.name.toLowerCase().includes(query);
+    const numberMatch = String(item.pokemon_id).padStart(4, "0").includes(query);
     return nameMatch || numberMatch;
   });
 
-  const handleReleaseClick = (pokemon) => setPokemonToRelease(pokemon);
-
-  const confirmRelease = async () => {
-    if (!pokemonToRelease) return;
-    setIsDeleting(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/my-pokemon/${pokemonToRelease.id}`, {
-        method: "DELETE",
-        headers: { Accept: "application/json" },
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.message || "Gagal menghapus pokemon");
-      setKoleksi(prev => prev.filter(p => p.id !== pokemonToRelease.id));
-      setFeedbackMsg(`Berhasil melepaskan ${pokemonToRelease.name}!`);
-      setTimeout(() => setFeedbackMsg(""), 3000);
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setIsDeleting(false);
-      setPokemonToRelease(null);
-    }
-  };
-
-  const cancelRelease = () => setPokemonToRelease(null);
-
   return (
     <div className="min-h-screen bg-[#cda434] dark:bg-zinc-900 flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 transition-colors duration-300">
-
-      {/* Modal Konfirmasi Release */}
-      {pokemonToRelease && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center text-center">
-            <img src={pokemonToRelease.image} alt={pokemonToRelease.name} className="w-24 h-24 mb-4 object-contain drop-shadow-md" />
-            <h3 className="text-lg font-bold text-zinc-900 mb-2">
-              Lepaskan {pokemonToRelease.name}?
-            </h3>
-            <p className="text-sm text-zinc-500 mb-6">
-              Pokemon ini akan dikembalikan ke alam liar dan dihapus dari koleksimu.
-            </p>
-            <div className="flex gap-3 w-full">
-              <button
-                onClick={cancelRelease}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2 bg-zinc-200 hover:bg-zinc-300 text-zinc-800 font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Batal
-              </button>
-              <button
-                onClick={confirmRelease}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex justify-center items-center gap-2 cursor-pointer"
-              >
-                {isDeleting ? "..." : "Ya, Lepaskan"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toast Feedback */}
-      {feedbackMsg && (
-        <div className="fixed bottom-4 right-4 z-40 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg font-bold">
-          {feedbackMsg}
-        </div>
-      )}
-
       <div className="w-full max-w-6xl flex flex-col gap-6">
-
         {/* Navbar */}
-        <Navbar koleksiCount={koleksi.length} />
+        <Navbar koleksiCount={koleksiCount} />
 
         {/* Search Bar */}
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
 
         {/* Subjudul */}
-        <h2 className="text-base font-extrabold text-zinc-900">
-          Kantong Koleksi Pribadi Anda
+        <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+          LOG AKTIVITAS SISTEM
         </h2>
 
         {/* Error state */}
         {error && (
           <div className="text-center py-8 text-red-600 font-medium bg-white/60 rounded-2xl">
-            <p>Gagal memuat koleksi: {error}</p>
+            <p>Gagal memuat riwayat: {error}</p>
             <button
-              onClick={loadKoleksi}
+              onClick={loadData}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors cursor-pointer"
             >
               Coba Lagi
@@ -413,27 +328,35 @@ export default function KoleksiPage() {
           </div>
         )}
 
-        {/* Grid Koleksi */}
+        {/* Grid Riwayat */}
         {!error && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10 mt-4">
             {loading
               ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={`sk-${i}`} />)
-              : filteredKoleksi.map((pokemon) => (
-                  <KoleksiCard key={pokemon.id} pokemon={pokemon} onRelease={handleReleaseClick} />
+              : filteredHistory.map((item) => (
+                  <HistoryCard key={item.id} item={item} />
                 ))
             }
           </div>
         )}
 
-        {/* Empty: koleksi kosong */}
-        {!loading && !error && koleksi.length === 0 && <EmptyKoleksi />}
+        {/* Empty State */}
+        {!loading && !error && history.length === 0 && (
+          <div className="text-center py-20 bg-white/40 rounded-2xl p-6">
+            <img src="/telurpokemon.jpeg" alt="Pokeball" className="w-20 h-20 opacity-50 mx-auto mb-4" />
+            <h2 className="text-lg font-bold text-zinc-900">Belum ada riwayat aktivitas</h2>
+            <p className="text-sm text-zinc-700 max-w-sm mx-auto mt-2">
+              Cobalah untuk menangkap atau melepaskan pokemon terlebih dahulu.
+            </p>
+          </div>
+        )}
 
-        {/* Empty: tidak ketemu pencarian */}
-        {!loading && !error && koleksi.length > 0 && filteredKoleksi.length === 0 && (
+        {/* Empty: search not found */}
+        {!loading && !error && history.length > 0 && filteredHistory.length === 0 && (
           <div className="text-center py-12">
             <img src="/telurpokemon.jpeg" alt="Tidak ditemukan" className="w-24 h-24 mx-auto mb-4 opacity-50" />
-            <p className="text-zinc-700 font-medium">
-              Pokémon tidak ditemukan untuk &ldquo;{searchQuery}&rdquo;
+            <p className="text-zinc-700 dark:text-zinc-300 font-medium">
+              Riwayat tidak ditemukan untuk &ldquo;{searchQuery}&rdquo;
             </p>
           </div>
         )}
