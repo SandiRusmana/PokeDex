@@ -263,77 +263,74 @@ function PokemonCard({ pokemon }) {
   const types = pokemon.types || [];
 
   return (
-    <Link
-      href={`/pokemon/${pokemon.id}`}
-      className="bg-white border-3 border-blue-500 rounded-2xl p-6 flex flex-col items-start gap-3 shadow-[0_0_15px_3px_rgba(96,165,250,0.6)] hover:shadow-[0_0_25px_6px_rgba(59,130,246,0.7)] transition-shadow"
-    >
-      {/* Area gambar Pokémon */}
-      <div className="w-full flex justify-center">
-        <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center rounded-xl cursor-pointer group">
+    <div className="relative pt-12 group">
+      {/* Gambar melayang di atas card */}
+      <Link href={`/pokemon/${pokemon.id}`}>
+        <div
+          className="absolute left-1/2 -translate-x-1/2 w-28 h-28 z-10 drop-shadow-xl transition-transform duration-300 group-hover:-translate-y-2 group-hover:scale-105"
+          style={{ top: "-10px" }}
+        >
+          {/* Glow warna tipe */}
           <div
-            className="absolute inset-0 rounded-full blur-2xl opacity-40 transition-opacity duration-300 group-hover:opacity-60"
+            className="absolute inset-0 rounded-full blur-xl opacity-50"
             style={{ backgroundColor: TYPE_COLORS[(types[0] || "normal").toLowerCase()] || "#999" }}
           />
           <img
-            src={
-              imgError || !pokemon.image ? "/telurpokemon.jpeg" : pokemon.image
-            }
+            src={imgError || !pokemon.image ? "/telurpokemon.jpeg" : pokemon.image}
             alt={pokemon.name}
-            className="relative w-full h-full object-contain p-2 transition-transform duration-300 ease-out group-hover:scale-110 drop-shadow-xl"
+            className="relative w-full h-full object-contain"
             loading="lazy"
             onError={() => setImgError(true)}
           />
         </div>
-      </div>
+      </Link>
 
-      {/* Nomor Pokémon */}
-      <span className="text-sm font-bold text-zinc-500 mt-2">
-        {displayNumber}
-      </span>
-
-      {/* Nama Pokémon */}
-      <h3 className="text-lg sm:text-xl font-extrabold text-zinc-900 leading-tight">
-        {displayName}
-      </h3>
-
-      {/* Badge tipe */}
-      <div className="flex flex-wrap gap-2 mt-1">
-        {types.map((type) => {
-          const typeLower = type.toLowerCase();
-          const bgColor = TYPE_COLORS[typeLower] || "#999";
-          return (
-            <span
-              key={type}
-              className="px-3 py-1 rounded-md text-xs font-bold text-white uppercase"
-              style={{ backgroundColor: bgColor }}
-            >
-              {type}
-            </span>
-          );
-        })}
-      </div>
-    </Link>
+      {/* Card body */}
+      <Link href={`/pokemon/${pokemon.id}`}>
+        <div className="bg-white border-2 border-blue-500 rounded-2xl pt-16 pb-4 px-4 flex flex-col items-start text-left hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)] transition-shadow cursor-pointer">
+          {/* Nomor */}
+          <span className="text-xs font-bold text-zinc-500">{displayNumber}</span>
+          {/* Nama */}
+          <h3 className="text-base font-extrabold text-zinc-900 leading-tight mt-0.5">
+            {displayName}
+          </h3>
+          {/* Badge tipe */}
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {types.map((type) => {
+              const typeLower = type.toLowerCase();
+              const bgColor = TYPE_COLORS[typeLower] || "#999";
+              return (
+                <span
+                  key={type}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-bold text-white uppercase"
+                  style={{ backgroundColor: bgColor }}
+                >
+                  {type}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      </Link>
+    </div>
   );
 }
 
 // ─── Komponen: Loading Skeleton Card ─────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="bg-white border-2 border-blue-500 dark:border-blue-400 rounded-2xl p-6 flex flex-col items-start gap-3 animate-pulse">
-      <div className="w-full flex justify-center">
-        <div className="w-36 h-36 sm:w-44 sm:h-44 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
-          <img
-            src="/telurpokemon.jpeg"
-            alt="Loading..."
-            className="w-24 h-24 object-contain opacity-50"
-          />
+    <div className="relative pt-12 animate-pulse">
+      <div
+        className="absolute left-1/2 -translate-x-1/2 w-28 h-28 bg-orange-200 rounded-full z-10"
+        style={{ top: "-10px" }}
+      />
+      <div className="bg-white border-2 border-blue-300 rounded-2xl pt-16 pb-4 px-4 flex flex-col gap-2">
+        <div className="h-3 w-10 bg-zinc-200 rounded" />
+        <div className="h-5 w-24 bg-zinc-200 rounded" />
+        <div className="flex gap-1.5 mt-1">
+          <div className="h-5 w-12 bg-zinc-200 rounded-md" />
+          <div className="h-5 w-12 bg-zinc-200 rounded-md" />
         </div>
-      </div>
-      <div className="h-4 w-16 bg-zinc-200 rounded mt-2" />
-      <div className="h-6 w-28 bg-zinc-200 rounded animate-pulse" />
-      <div className="flex gap-2 mt-1">
-        <div className="h-6 w-16 bg-zinc-200 rounded-md" />
-        <div className="h-6 w-16 bg-zinc-200 rounded-md" />
       </div>
     </div>
   );
@@ -358,11 +355,21 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch koleksi saya count
+  // Baca localStorage saat mount agar tidak flash ke 0 saat reload
+  useEffect(() => {
+    const saved = localStorage.getItem("koleksiCount");
+    if (saved !== null) setKoleksiCount(parseInt(saved, 10));
+  }, []);
+
+  // Fetch koleksi saya count (update nilai terbaru dari server)
   useEffect(() => {
     fetchMyPokemon()
-      .then((data) => setKoleksiCount(data.length))
-      .catch(() => setKoleksiCount(0));
+      .then((data) => {
+        setKoleksiCount(data.length);
+        // Simpan ke localStorage agar saat reload tidak flash ke 0
+        localStorage.setItem("koleksiCount", data.length);
+      })
+      .catch(() => {}); // Biarkan nilai lama dari localStorage jika gagal
   }, []);
 
   // Fetch Pokémon list (termasuk types) dalam 1 call
@@ -429,7 +436,7 @@ export default function Home() {
 
         {/* Grid Pokémon */}
         {!error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10 mt-4">
             {loading
               ? Array.from({ length: 20 }).map((_, i) => (
                   <SkeletonCard key={`skeleton-${i}`} />

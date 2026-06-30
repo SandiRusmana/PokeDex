@@ -292,6 +292,8 @@ export default function KoleksiPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  // Baca dari localStorage agar navbar tidak flash ke 0 saat navigasi
+  const [koleksiCount, setKoleksiCount] = useState(0);
 
   const [pokemonToRelease, setPokemonToRelease] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -303,12 +305,20 @@ export default function KoleksiPage() {
     try {
       const data = await fetchMyPokemon();
       setKoleksi(data);
+      setKoleksiCount(data.length);
+      localStorage.setItem("koleksiCount", data.length);
     } catch (err) {
       setError(err.message);
       setKoleksi([]);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Baca localStorage saat mount agar tidak flash ke 0
+  useEffect(() => {
+    const saved = localStorage.getItem("koleksiCount");
+    if (saved !== null) setKoleksiCount(parseInt(saved, 10));
   }, []);
 
   useEffect(() => { loadKoleksi(); }, [loadKoleksi]);
@@ -333,7 +343,12 @@ export default function KoleksiPage() {
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.message || "Gagal menghapus pokemon");
-      setKoleksi(prev => prev.filter(p => p.id !== pokemonToRelease.id));
+      setKoleksi(prev => {
+        const next = prev.filter(p => p.id !== pokemonToRelease.id);
+        setKoleksiCount(next.length);
+        localStorage.setItem("koleksiCount", next.length);
+        return next;
+      });
       setFeedbackMsg(`Berhasil melepaskan ${pokemonToRelease.name}!`);
       setTimeout(() => setFeedbackMsg(""), 3000);
     } catch (err) {
@@ -390,7 +405,7 @@ export default function KoleksiPage() {
       <div className="w-full max-w-6xl flex flex-col gap-6">
 
         {/* Navbar */}
-        <Navbar koleksiCount={koleksi.length} />
+        <Navbar koleksiCount={koleksiCount} />
 
         {/* Search Bar */}
         <SearchBar value={searchQuery} onChange={setSearchQuery} />

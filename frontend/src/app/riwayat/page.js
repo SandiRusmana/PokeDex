@@ -282,11 +282,18 @@ export default function RiwayatPage() {
       ]);
       setHistory(historyData);
       setKoleksiCount(count);
+      localStorage.setItem("koleksiCount", count);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Baca localStorage saat mount agar tidak flash ke 0
+  useEffect(() => {
+    const saved = localStorage.getItem("koleksiCount");
+    if (saved !== null) setKoleksiCount(parseInt(saved, 10));
   }, []);
 
   useEffect(() => {
