@@ -440,7 +440,7 @@ export default function KoleksiPage() {
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
 
         {/* Subjudul */}
-        <h2 className="text-base font-extrabold text-zinc-900">
+        <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-100">
           Kantong Koleksi Pribadi Anda
         </h2>
 

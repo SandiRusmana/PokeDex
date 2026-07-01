@@ -246,7 +246,7 @@ function SearchBar({ value, onChange }) {
         fill="none"
         stroke="currentColor"
         strokeWidth={2}
-        viewBox="0 0 24 24"
+        viewBox="0 0 24 24" 
       >
         <circle cx="11" cy="11" r="8" />
         <path d="m21 21-4.35-4.35" strokeLinecap="round" />
@@ -256,7 +256,7 @@ function SearchBar({ value, onChange }) {
         placeholder="Cari nama atau nomor Pokémon..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-12 pr-4 py-3 border-2 border-blue-500 dark:border-blue-400 rounded-full text-sm sm:text-base outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500"
+        className="w-full pl-12 pr-4 py-3 border-2 border-blue-500 dark:border-blue-400 rounded-full text-sm sm:text-base outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500" 
       />
     </div>
   );
