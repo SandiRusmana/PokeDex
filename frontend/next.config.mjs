@@ -15,7 +15,7 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://bubbly-stillness-production-5cb4.up.railway.app/api/:path*",
+        destination: "https://pokedex-production-e1c7.up.railway.app/api/:path*",
       },
     ];
   },
