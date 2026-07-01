@@ -36,7 +36,12 @@ class PokemonController extends Controller
                 $results = $results->filter(function ($pokemon) use ($search) {
                     $parts = explode('/', rtrim($pokemon['url'], '/'));
                     $id = end($parts);
-                    return Str::contains(strtolower($pokemon['name']), strtolower($search)) || $id == $search;
+
+                    if (is_numeric($search)) {
+                        return Str::contains($id, $search);
+                    }
+
+                    return Str::contains(strtolower($pokemon['name']), strtolower($search));
                 })->take(20)->values();
             }
 
@@ -90,7 +95,12 @@ class PokemonController extends Controller
                 $results = $results->filter(function ($pokemon) use ($search) {
                     $parts = explode('/', rtrim($pokemon['url'], '/'));
                     $id = end($parts);
-                    return Str::contains(strtolower($pokemon['name']), strtolower($search)) || $id == $search;
+
+                    if (is_numeric($search)) {
+                        return Str::contains($id, $search);
+                    }
+
+                    return Str::contains(strtolower($pokemon['name']), strtolower($search));
                 })->take(20)->values();
             }
 

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 const API_BASE = "";
 
@@ -134,10 +133,9 @@ function StatsTab({ pokemon }) {
 
   // Animasi mengisi bar dari 0 setiap kali tab Stats dibuka
   useEffect(() => {
-    setAnimated(false);
     const timer = setTimeout(() => setAnimated(true), 50);
     return () => clearTimeout(timer);
-  }, [pokemon]);
+  }, []);
 
   const total = stats.reduce((sum, s) => sum + s.value, 0);
 
@@ -217,39 +215,54 @@ export default function PokemonDetailPage() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("about"); // "about" | "stats"
   const [catchCount, setCatchCount] = useState(0);
-
-  const loadDetail = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchPokemonDetail(id);
-      setPokemon(data);
-
-      // Ambil data jumlah pokemon yang sudah ditangkap
-      try {
-        const myPokemonRes = await fetch(`${API_BASE}/api/my-pokemon`, {
-          headers: { Accept: "application/json" },
-        });
-        if (myPokemonRes.ok) {
-          const myPokemonData = await myPokemonRes.json();
-          if (myPokemonData.success) {
-            setCatchCount(myPokemonData.data.length);
-          }
-        }
-      } catch (err) {
-        console.error("Gagal mengambil data my-pokemon", err);
-      }
-    } catch (err) {
-      setError(err.message);
-      setPokemon(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
-    loadDetail();
-  }, [loadDetail]);
+    let active = true;
+    const load = async () => {
+      Promise.resolve().then(() => {
+        if (active) {
+          setLoading(true);
+          setError(null);
+        }
+      });
+      try {
+        const data = await fetchPokemonDetail(id);
+        if (active) {
+          setPokemon(data);
+        }
+  
+        // Ambil data jumlah pokemon yang sudah ditangkap
+        try {
+          const myPokemonRes = await fetch(`${API_BASE}/api/my-pokemon`, {
+            headers: { Accept: "application/json" },
+          });
+          if (myPokemonRes.ok) {
+            const myPokemonData = await myPokemonRes.json();
+            if (myPokemonData.success && active) {
+              setCatchCount(myPokemonData.data.length);
+            }
+          }
+        } catch (err) {
+          console.error("Gagal mengambil data my-pokemon", err);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err.message);
+          setPokemon(null);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+  
+    load();
+    return () => {
+      active = false;
+    };
+  }, [id, retry]);
 
   // ── Loading state ──
   if (loading) {
@@ -266,7 +279,11 @@ export default function PokemonDetailPage() {
         </p>
         <div className="flex gap-3">
           <button
-            onClick={loadDetail}
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              setRetry((prev) => prev + 1);
+            }}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors cursor-pointer"
           >
             Coba Lagi
@@ -386,7 +403,7 @@ export default function PokemonDetailPage() {
             {activeTab === "about" ? (
               <AboutTab pokemon={pokemon} />
             ) : (
-              <StatsTab pokemon={pokemon} />
+              <StatsTab pokemon={pokemon} key={pokemon.id} />
             )}
           </div>
         </div>

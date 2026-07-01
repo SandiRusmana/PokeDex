@@ -90,23 +90,38 @@ export default function CatchPage() {
   const [phase, setPhase] = useState("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loadDetail = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchPokemonDetail(id);
-      setPokemon(data);
-    } catch (err) {
-      setError(err.message);
-      setPokemon(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
-    loadDetail();
-  }, [loadDetail]);
+    let active = true;
+    const load = async () => {
+      Promise.resolve().then(() => {
+        if (active) {
+          setLoading(true);
+          setError(null);
+        }
+      });
+      try {
+        const data = await fetchPokemonDetail(id);
+        if (active) {
+          setPokemon(data);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err.message);
+          setPokemon(null);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [id, retry]);
 
   const handleThrow = async () => {
     if (phase === "throwing" || isSubmitting) return;
@@ -148,7 +163,11 @@ export default function CatchPage() {
         </p>
         <div className="flex gap-3">
           <button
-            onClick={loadDetail}
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              setRetry((prev) => prev + 1);
+            }}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors cursor-pointer"
           >
             Coba Lagi
@@ -241,7 +260,7 @@ export default function CatchPage() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => router.push("/")}
+                  onClick={() => router.push("/koleksi")}
                   className="px-5 py-3 bg-green-500 text-white rounded-full font-bold hover:bg-green-600 transition-colors cursor-pointer"
                 >
                   Lihat Koleksi

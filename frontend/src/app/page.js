@@ -66,7 +66,15 @@ function Navbar({ koleksiCount }) {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) setMounted(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const navLinks = [
     { href: "/", label: "BERANDA" },
@@ -355,10 +363,17 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const [retry, setRetry] = useState(0);
+
   // Baca localStorage saat mount agar tidak flash ke 0 saat reload
   useEffect(() => {
     const saved = localStorage.getItem("koleksiCount");
-    if (saved !== null) setKoleksiCount(parseInt(saved, 10));
+    if (saved !== null) {
+      const parsed = parseInt(saved, 10);
+      Promise.resolve().then(() => {
+        setKoleksiCount(parsed);
+      });
+    }
   }, []);
 
   // Fetch koleksi saya count (update nilai terbaru dari server)
@@ -372,32 +387,42 @@ export default function Home() {
       .catch(() => {}); // Biarkan nilai lama dari localStorage jika gagal
   }, []);
 
-  // Fetch Pokémon list (termasuk types) dalam 1 call
-  const loadPokemon = useCallback(async (search) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // 1 call = list + types, bukan 21 calls lagi
-      const list = await fetchPokemonWithTypes(search);
-      setPokemonList(list);
-    } catch (err) {
-      setError(err.message);
-      setPokemonList([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadPokemon(debouncedSearch);
-  }, [debouncedSearch, loadPokemon]);
+    let active = true;
+    const load = async () => {
+      Promise.resolve().then(() => {
+        if (active) {
+          setLoading(true);
+          setError(null);
+        }
+      });
+      try {
+        const list = await fetchPokemonWithTypes(debouncedSearch);
+        if (active) {
+          setPokemonList(list);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err.message);
+          setPokemonList([]);
+          setLoading(false);
+        }
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [debouncedSearch, retry]);
 
-  // Client-side filter by nomor (search backend hanya support nama)
+  // Client-side filter by nomor dan nama
   const filteredList = pokemonList.filter((poke) => {
     if (!debouncedSearch) return true;
     const query = debouncedSearch.toLowerCase();
+    const nameMatch = poke.name.toLowerCase().includes(query);
     const numberMatch = String(poke.id).padStart(4, "0").includes(query);
-    return numberMatch || true; // Backend sudah filter by nama, kita tambah filter nomor
+    return nameMatch || numberMatch;
   });
 
   return (
@@ -426,7 +451,11 @@ export default function Home() {
           <div className="text-center py-8 text-red-500 font-medium">
             <p>Gagal memuat data: {error}</p>
             <button
-              onClick={() => loadPokemon(debouncedSearch)}
+              onClick={() => {
+                setLoading(true);
+                setError(null);
+                setRetry((prev) => prev + 1);
+              }}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors cursor-pointer"
             >
               Coba Lagi

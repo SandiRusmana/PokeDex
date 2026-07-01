@@ -33,7 +33,15 @@ function Navbar({ koleksiCount }) {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) setMounted(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const navLinks = [
     { href: "/", label: "BERANDA" },
@@ -298,30 +306,51 @@ export default function KoleksiPage() {
   const [pokemonToRelease, setPokemonToRelease] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
-
-  const loadKoleksi = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchMyPokemon();
-      setKoleksi(data);
-      setKoleksiCount(data.length);
-      localStorage.setItem("koleksiCount", data.length);
-    } catch (err) {
-      setError(err.message);
-      setKoleksi([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [retry, setRetry] = useState(0);
 
   // Baca localStorage saat mount agar tidak flash ke 0
   useEffect(() => {
     const saved = localStorage.getItem("koleksiCount");
-    if (saved !== null) setKoleksiCount(parseInt(saved, 10));
+    if (saved !== null) {
+      const parsed = parseInt(saved, 10);
+      Promise.resolve().then(() => {
+        setKoleksiCount(parsed);
+      });
+    }
   }, []);
 
-  useEffect(() => { loadKoleksi(); }, [loadKoleksi]);
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      Promise.resolve().then(() => {
+        if (active) {
+          setLoading(true);
+          setError(null);
+        }
+      });
+      try {
+        const data = await fetchMyPokemon();
+        if (active) {
+          setKoleksi(data);
+          setKoleksiCount(data.length);
+          localStorage.setItem("koleksiCount", data.length);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err.message);
+          setKoleksi([]);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [retry]);
 
   const filteredKoleksi = koleksi.filter((pokemon) => {
     if (!searchQuery) return true;
@@ -420,7 +449,11 @@ export default function KoleksiPage() {
           <div className="text-center py-8 text-red-600 font-medium bg-white/60 rounded-2xl">
             <p>Gagal memuat koleksi: {error}</p>
             <button
-              onClick={loadKoleksi}
+              onClick={() => {
+                setLoading(true);
+                setError(null);
+                setRetry((prev) => prev + 1);
+              }}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors cursor-pointer"
             >
               Coba Lagi
